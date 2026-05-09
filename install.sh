@@ -1275,9 +1275,9 @@ if [ -f "$(pwd)/install.sh" ] && [ -d "$(pwd)/.config" ] && [ -d "$(pwd)/.git" ]
 else
     if [ -d "$CLONE_DIR" ]; then
         OLD_COMMIT="$LAST_COMMIT"
-        git -C "$CLONE_DIR" fetch --all > /dev/null 2>&1
-        git -C "$CLONE_DIR" checkout "$TARGET_BRANCH" > /dev/null 2>&1
-        git -C "$CLONE_DIR" reset --hard "origin/$TARGET_BRANCH" > /dev/null 2>&1
+        # git -C "$CLONE_DIR" fetch --all > /dev/null 2>&1
+        # git -C "$CLONE_DIR" checkout "$TARGET_BRANCH" > /dev/null 2>&1
+        # git -C "$CLONE_DIR" reset --hard "origin/$TARGET_BRANCH" > /dev/null 2>&1
         NEW_COMMIT=$(git -C "$CLONE_DIR" rev-parse HEAD 2>/dev/null)
     else
         OLD_COMMIT="$LAST_COMMIT"
