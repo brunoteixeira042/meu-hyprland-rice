@@ -1,4 +1,3 @@
-//@ pragma UseQApplication
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -13,18 +12,6 @@ Variants {
             id: floatingWidget
             required property var modelData
             screen: modelData
-
-            Connections {
-                target: Quickshell
-
-                function onReloadCompleted() {
-                    Quickshell.inhibitReloadPopup()
-                }
-
-                function onReloadFailed(errorString) {
-                    Quickshell.inhibitReloadPopup()
-                }
-            }
 
             WlrLayershell.namespace: "qs-floating-overlay"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -72,7 +59,8 @@ Variants {
             // =========================================================
             property var tabModules: [
                 "quickactions/DrawAction.qml",
-                "quickactions/SystemUsage.qml",
+		"quickactions/SystemUsage.qml",
+		"quickactions/Timer.qml"
             ]
 
             property int tabCount: Math.max(1, tabModules.length)
