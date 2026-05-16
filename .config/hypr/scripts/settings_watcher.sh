@@ -32,6 +32,7 @@ compile_settings() {
 
     # Read state from JSON (Using 'has' to safely parse booleans)
     LANG=$(jq -r '.language // "us"' "$SETTINGS_FILE")
+    KB_VAR=$(jq -r '.kbVariant // ""' "$SETTINGS_FILE")
     KB_OPT=$(jq -r '.kbOptions // "grp:alt_shift_toggle"' "$SETTINGS_FILE")
     WP_DIR=$(jq -r '.wallpaperDir // empty' "$SETTINGS_FILE")
 
@@ -70,6 +71,7 @@ compile_settings() {
     # 2. Regenerate settings.conf using template
     echo "Regenerating settings.conf..."
     sed -e "s|{{KB_LAYOUT}}|$LANG|g" \
+        -e "s|{{KB_VARIANT}}|$KB_VAR|g" \
         -e "s|{{KB_OPTIONS}}|$KB_OPT|g" \
         "$TMPL_DIR/settings.conf.template" > "$SETTINGS_CONF"
 
