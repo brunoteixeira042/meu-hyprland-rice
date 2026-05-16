@@ -3,7 +3,7 @@
 # ==============================================================================
 # Script Versioning & Initialization
 # ==============================================================================
-DOTS_VERSION="1.7.4-1"
+DOTS_VERSION="1.7.6-1"
 VERSION_FILE="$HOME/.local/state/imperative-dots-version"
 
 # ==============================================================================
@@ -165,7 +165,7 @@ ARCH_PKGS=(
     "grim" "playerctl" "satty" "yq" "xdg-desktop-portal-gtk" "slurp" "mpvpaper"
     "wmctrl" "power-profiles-daemon" "easyeffects" "swayosd-git" "nautilus" "lsp-plugins" "hyprpolkitagent"
     "qt5-wayland" "qt5-quickcontrols" "qt5-quickcontrols2" "qt5-graphicaleffects" "qt6-wayland"
-    "qt5ct" "qt6ct" "gpu-screen-recorder" "adw-gtk-theme"
+    "qt5ct" "qt6ct" "gpu-screen-recorder" "adw-gtk-theme" "xdg-desktop-portal-wlr"
 )
 
 PKGS=("${ARCH_PKGS[@]}")
@@ -530,7 +530,7 @@ manage_keyboard() {
         "lt - Lithuanian" "md - Moldovan" "am - Armenian" "ge - Georgian" "az - Azerbaijani" 
         "kz - Kazakh" "kg - Kyrgyz" "tj - Tajik" "tm - Turkmen" "uz - Uzbek" 
         "mn - Mongolian" "tat - Tatar" "chu - Chuvash" "os - Ossetian" "udm - Udmurt" 
-        "kbd - Kabardian" "che - Chechen"
+        "kbd - Kabardian" "che - Chechen" "tr - Turkish"
         "au - English (Australia)" "nz - English (New Zealand)" 
         "cn - Chinese" "jp - Japanese" "kr - Korean" "tw - Taiwanese" "hk - Hong Kong"
         "in - Indian" "pk - Pakistani" "bd - Bangla" "lk - Sri Lankan" "np - Nepali" 
@@ -586,7 +586,7 @@ manage_keyboard() {
         fi
 
         local choice
-        choice=$(printf "%s\n" "Done (Finish Selection)" "Reset (Clear All Except US)" "${available_layouts[@]}" | fzf \
+        choice=$(printf "%s\n" "Done (Finish Selection)" "Reset (Clear All Except US)" "${available_layouts[@]}" | sed '/^[[:space:]]*$/d' | fzf \
             --layout=reverse \
             --border=rounded \
             --margin=1,2 \
@@ -1379,6 +1379,11 @@ elif [ "$OLD_COMMIT" == "$NEW_COMMIT" ] && [ -n "$OLD_COMMIT" ]; then
     echo -e "  -> Repository is up to date (${C_YELLOW}${NEW_COMMIT::7}${RESET}). Only applying upstream changes (None found)."
 fi
 
+if [ -f "$TARGET_CONFIG_DIR/hypr/settings.json" ]; then
+    mkdir -p "$BACKUP_DIR/hypr"
+    cp "$TARGET_CONFIG_DIR/hypr/settings.json" "$BACKUP_DIR/hypr/settings.json"
+fi
+
 if [ "$DO_FULL_INSTALL" = true ]; then
     echo "  -> Performing Full Install / Overwrite..."
 
@@ -1474,12 +1479,6 @@ else
         echo "  -> No target config files were changed upstream. Local files kept intact."
     fi
     
-    # We must explicitly stage the current settings.json into the backup dir 
-    # so the SSoT JSON merge logic later in the script can find and read it
-    if [ -f "$TARGET_CONFIG_DIR/hypr/settings.json" ]; then
-        mkdir -p "$BACKUP_DIR/hypr"
-        cp "$TARGET_CONFIG_DIR/hypr/settings.json" "$BACKUP_DIR/hypr/settings.json"
-    fi
 fi
 
 # --- 4.5 Bake Hardware Variables into Template ---
@@ -1834,8 +1833,17 @@ fi
 
 # Trigger Template Compilation
 echo -e "\n${C_CYAN}[ INFO ]${RESET} Compiling .conf files from Templates..."
-chmod +x "$TARGET_CONFIG_DIR/hypr/scripts/settings_watcher.sh"
-bash "$TARGET_CONFIG_DIR/hypr/scripts/settings_watcher.sh" --compile
+
+# Always use the newly cloned upstream file to guarantee the --compile flag exists
+# This prevents errors for users updating from an older version that lacked this logic.
+if [ -f "$REPO_DIR/.config/hypr/scripts/settings_watcher.sh" ]; then
+    chmod +x "$REPO_DIR/.config/hypr/scripts/settings_watcher.sh"
+    bash "$REPO_DIR/.config/hypr/scripts/settings_watcher.sh" --compile
+else
+    # Fallback to the target directory just in case
+    chmod +x "$TARGET_CONFIG_DIR/hypr/scripts/settings_watcher.sh"
+    bash "$TARGET_CONFIG_DIR/hypr/scripts/settings_watcher.sh" --compile
+fi
 
 # --- 8. Finalize Version Marker & User State Persistence ---
 cat <<EOF > "$VERSION_FILE"
